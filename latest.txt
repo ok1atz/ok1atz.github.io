@@ -1,1 +1,1 @@
-firmware01.bin
+firmware03.bin

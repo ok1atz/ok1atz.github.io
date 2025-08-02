@@ -1,48 +1,52 @@
 blueprint:
-  name: Sync two switches
-  description: Turn on a switch when other one is turend on and vice versa
+  name: Dvě tlačítka ovládají dvě zařízení
+  description: Každé tlačítko přepíná (toggle) vlastní cílovou entitu.
   domain: automation
   input:
-    switch_entity1:
-      name: Switch 1
+    button_1:
+      name: Tlačítko 1
       selector:
         entity:
           domain: switch
-    switch_entity2:
-      name: Switch 2
+    target_1:
+      name: Zařízení 1 (co ovládá tlačítko 1)
+      selector:
+        entity:
+    button_2:
+      name: Tlačítko 2
       selector:
         entity:
           domain: switch
-variables:
-  switch_entity1: !input switch_entity1
-  switch_entity2: !input switch_entity2
+    target_2:
+      name: Zařízení 2 (co ovládá tlačítko 2)
+      selector:
+        entity:
+
 trigger:
   - platform: state
-    entity_id: 
-      - !input switch_entity1
-      - !input switch_entity2
-    from: 'on'
-    to: 'off'
+    entity_id: !input button_1
+    to: "on"
+    id: b1
   - platform: state
-    entity_id: 
-      - !input switch_entity1
-      - !input switch_entity2
-    from: 'off'
-    to: 'on'
-condition: "{{ trigger.to_state.context.parent_id == none }}"
+    entity_id: !input button_2
+    to: "on"
+    id: b2
+
 action:
-  - wait_template: "{{ (as_timestamp(now()) - as_timestamp(this.attributes.last_triggered | default(0)) | int > 3) }}"
-    timeout: 3
-  - service_template: >
-      {% if trigger.to_state.state == 'on' %}
-      switch.turn_on
-      {% elif trigger.to_state.state == 'off' %}
-      switch.turn_off
-      {% endif %}
-    data_template: 
-      entity_id: >
-        {% if trigger.entity_id == switch_entity1 %}
-        {{ switch_entity2 }}
-        {% elif trigger.entity_id == switch_entity2 %}
-        {{ switch_entity1 }}
-        {% endif %}
+  - choose:
+      - conditions:
+          - condition: trigger
+            id: b1
+        sequence:
+          - service: homeassistant.toggle
+            target:
+              entity_id: !input target_1
+      - conditions:
+          - condition: trigger
+            id: b2
+        sequence:
+          - service: homeassistant.toggle
+            target:
+              entity_id: !input target_2
+
+mode: single

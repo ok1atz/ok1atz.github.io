@@ -1,95 +1,28 @@
 blueprint:
-  name: Ovládání 4 zařízení pomocí 4 tlačítek
-  description: Každé tlačítko ovládá jednu cílovou entitu přepnutím stavu (toggle).
+  name: Tlačítko ovládá zařízení (toggle)
+  description: Po stisknutí tlačítka se přepne stav vybrané entity (zapne/vypne).
   domain: automation
   input:
-    button_1:
-      name: Tlačítko 1
+    button:
+      name: Tlačítko
+      description: Entita tlačítka (např. Tasmota switch nebo GPIO)
       selector:
         entity:
           domain: switch
-    target_1:
-      name: Co ovládá tlačítko 1
-      selector:
-        entity:
-    button_2:
-      name: Tlačítko 2
-      selector:
-        entity:
-          domain: switch
-    target_2:
-      name: Co ovládá tlačítko 2
-      selector:
-        entity:
-    button_3:
-      name: Tlačítko 3
-      selector:
-        entity:
-          domain: switch
-    target_3:
-      name: Co ovládá tlačítko 3
-      selector:
-        entity:
-    button_4:
-      name: Tlačítko 4
-      selector:
-        entity:
-          domain: switch
-    target_4:
-      name: Co ovládá tlačítko 4
+    target:
+      name: Ovládaná entita
+      description: Entita, kterou má tlačítko ovládat (light, switch apod.)
       selector:
         entity:
 
 trigger:
   - platform: state
-    entity_id: !input button_1
+    entity_id: !input button
     to: "on"
-    id: t1
-  - platform: state
-    entity_id: !input button_2
-    to: "on"
-    id: t2
-  - platform: state
-    entity_id: !input button_3
-    to: "on"
-    id: t3
-  - platform: state
-    entity_id: !input button_4
-    to: "on"
-    id: t4
 
 action:
-  - choose:
-      - conditions:
-          - condition: trigger
-            id: t1
-        sequence:
-          - service: homeassistant.toggle
-            target:
-              entity_id: !input target_1
+  - service: homeassistant.toggle
+    target:
+      entity_id: !input target
 
-      - conditions:
-          - condition: trigger
-            id: t2
-        sequence:
-          - service: homeassistant.toggle
-            target:
-              entity_id: !input target_2
-
-      - conditions:
-          - condition: trigger
-            id: t3
-        sequence:
-          - service: homeassistant.toggle
-            target:
-              entity_id: !input target_3
-
-      - conditions:
-          - condition: trigger
-            id: t4
-        sequence:
-          - service: homeassistant.toggle
-            target:
-              entity_id: !input target_4
 mode: single
-

@@ -1,0 +1,80 @@
+blueprint:
+  name: Link Two Switch Buttons to Entities
+  description: >
+    Two switch buttons each control their own target entity (light or switch).
+  domain: automation
+  homeassistant:
+    min_version: 2022.5.0
+
+  input:
+    button_1:
+      name: Button 1 (switch)
+      selector:
+        entity:
+          domain: switch
+    target_1:
+      name: Target Entity 1 (light or switch)
+      selector:
+        entity:
+          domain:
+            - light
+            - switch
+
+    button_2:
+      name: Button 2 (switch)
+      selector:
+        entity:
+          domain: switch
+    target_2:
+      name: Target Entity 2 (light or switch)
+      selector:
+        entity:
+          domain:
+            - light
+            - switch
+
+trigger:
+  - platform: state
+    entity_id: !input button_1
+    id: b1
+  - platform: state
+    entity_id: !input button_2
+    id: b2
+
+condition:
+  - condition: template
+    value_template: "{{ trigger.to_state.state != trigger.from_state.state }}"
+  - condition: template
+    value_template: >
+      {{ (as_timestamp(trigger.to_state.last_changed) - as_timestamp(trigger.from_state.last_changed)) > 0.1 }}
+
+action:
+  - choose:
+      - conditions:
+          - condition: trigger
+            id: b1
+        sequence:
+          - service: >
+              {% if target_1.domain == 'light' %}
+                light.turn_{{ trigger.to_state.state }}
+              {% else %}
+                switch.turn_{{ trigger.to_state.state }}
+              {% endif %}
+            target:
+              entity_id: !input target_1
+
+      - conditions:
+          - condition: trigger
+            id: b2
+        sequence:
+          - service: >
+              {% if target_2.domain == 'light' %}
+                light.turn_{{ trigger.to_state.state }}
+              {% else %}
+                switch.turn_{{ trigger.to_state.state }}
+              {% endif %}
+            target:
+              entity_id: !input target_2
+
+mode: queued
+max_exceeded: silent

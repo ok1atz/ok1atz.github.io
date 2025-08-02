@@ -1,31 +1,35 @@
 blueprint:
-  name: synchronizace
+  name: Nezávislá synchronizace A a B
   description: |
-    ## HA
+    Synchronizuje změny stavů uvnitř skupiny A a skupiny B, ale skupiny mezi sebou nejsou propojené.
+    Můžeš zadat jen A, jen B, nebo oboje.
   domain: automation
   homeassistant:
     min_version: 2022.5.0
+
   input:
-    lights:
-      name: Entities Group A (např. světla)
+    group_a:
+      name: Skupina A (např. světla)
       selector:
         entity:
           multiple: true
-    switches:
-      name: Entities Group B (např. spínače)
+          optional: true
+    group_b:
+      name: Skupina B (např. spínače)
       selector:
         entity:
           multiple: true
+          optional: true
 
 variables:
-  switches: !input switches
-  lights: !input lights
+  group_a: !input group_a
+  group_b: !input group_b
 
 trigger:
   - platform: state
-    entity_id: !input switches
+    entity_id: !input group_a
   - platform: state
-    entity_id: !input lights
+    entity_id: !input group_b
 
 mode: queued
 max_exceeded: silent
@@ -38,11 +42,28 @@ condition:
       {{ (as_timestamp(trigger.to_state.last_changed) - as_timestamp(trigger.from_state.last_changed)) > 0.1 }}
 
 action:
-  - service: homeassistant.turn_{{ trigger.to_state.state }}
-    target:
-      entity_id: >
-        {% set all_entities = expand(switches + lights) %}
-        {{ all_entities
-            | selectattr('entity_id', '!=', trigger.entity_id)
-            | map(attribute='entity_id')
-            | list }}
+  - variables:
+      source_entity: "{{ trigger.entity_id }}"
+      source_group: >-
+        {% if source_entity in group_a %}
+          a
+        {% elif source_entity in group_b %}
+          b
+        {% else %}
+          none
+        {% endif %}
+  - choose:
+      - conditions: "{{ source_group == 'a' }}"
+        sequence:
+          - service: homeassistant.turn_{{ trigger.to_state.state }}
+            target:
+              entity_id: >
+                {% set others = expand(group_a) | rejectattr('entity_id', 'equalto', source_entity) | map(attribute='entity_id') | list %}
+                {{ others }}
+      - conditions: "{{ source_group == 'b' }}"
+        sequence:
+          - service: homeassistant.turn_{{ trigger.to_state.state }}
+            target:
+              entity_id: >
+                {% set others = expand(group_b) | rejectattr('entity_id', 'equalto', source_entity) | map(attribute='entity_id') | list %}
+                {{ others }}

@@ -1,0 +1,87 @@
+blueprint:
+  name: Synchronizace LED s entitami (Tasmota)
+  description: Ovládá až 4 LED (např. Tasmota relé) podle stavu 4 entit.
+  domain: automation
+  input:
+    entity_1:
+      name: Entita 1
+      description: Entita, jejíž stav ovládá LED 1
+      selector:
+        entity: {}
+    led_1:
+      name: LED 1 (Tasmota)
+      description: Entita LED (např. switch nebo light), která kopíruje stav entity 1
+      selector:
+        entity: {}
+    entity_2:
+      name: Entita 2
+      description: Entita, jejíž stav ovládá LED 2
+      selector:
+        entity: {}
+    led_2:
+      name: LED 2 (Tasmota)
+      description: Entita LED (např. switch nebo light), která kopíruje stav entity 2
+      selector:
+        entity: {}
+    entity_3:
+      name: Entita 3
+      description: Entita, jejíž stav ovládá LED 3
+      selector:
+        entity: {}
+    led_3:
+      name: LED 3 (Tasmota)
+      description: Entita LED (např. switch nebo light), která kopíruje stav entity 3
+      selector:
+        entity: {}
+    entity_4:
+      name: Entita 4
+      description: Entita, jejíž stav ovládá LED 4
+      selector:
+        entity: {}
+    led_4:
+      name: LED 4 (Tasmota)
+      description: Entita LED (např. switch nebo light), která kopíruje stav entity 4
+      selector:
+        entity: {}
+
+trigger:
+  - platform: state
+    entity_id:
+      - !input entity_1
+      - !input entity_2
+      - !input entity_3
+      - !input entity_4
+
+condition: []
+
+action:
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: "{{ states[blueprint.input.entity_1] is defined }}"
+        sequence:
+          - service: homeassistant.turn_{{ states(blueprint.input.entity_1) }}
+            target:
+              entity_id: !input led_1
+      - conditions:
+          - condition: template
+            value_template: "{{ states[blueprint.input.entity_2] is defined }}"
+        sequence:
+          - service: homeassistant.turn_{{ states(blueprint.input.entity_2) }}
+            target:
+              entity_id: !input led_2
+      - conditions:
+          - condition: template
+            value_template: "{{ states[blueprint.input.entity_3] is defined }}"
+        sequence:
+          - service: homeassistant.turn_{{ states(blueprint.input.entity_3) }}
+            target:
+              entity_id: !input led_3
+      - conditions:
+          - condition: template
+            value_template: "{{ states[blueprint.input.entity_4] is defined }}"
+        sequence:
+          - service: homeassistant.turn_{{ states(blueprint.input.entity_4) }}
+            target:
+              entity_id: !input led_4
+mode: parallel

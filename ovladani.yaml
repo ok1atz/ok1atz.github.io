@@ -1,52 +1,86 @@
 blueprint:
-  name: Dvě tlačítka ovládají dvě zařízení
-  description: Každé tlačítko přepíná (toggle) vlastní cílovou entitu.
+  name: Link Multiple Switches and Lights - dvě tlačítka (upravený)
+  description: >
+    Link two switch buttons each controlling one target entity (light or switch).
+    Synchronizuje stav tlačítek se stavem cílových entit.
+
   domain: automation
+  homeassistant:
+    min_version: 2022.5.0
+
   input:
     button_1:
-      name: Tlačítko 1
+      name: Tlačítko 1 (switch)
       selector:
         entity:
           domain: switch
     target_1:
-      name: Zařízení 1 (co ovládá tlačítko 1)
+      name: Ovládaná entita 1 (light nebo switch)
       selector:
         entity:
+          domain:
+            - light
+            - switch
+
     button_2:
-      name: Tlačítko 2
+      name: Tlačítko 2 (switch)
       selector:
         entity:
           domain: switch
     target_2:
-      name: Zařízení 2 (co ovládá tlačítko 2)
+      name: Ovládaná entita 2 (light nebo switch)
       selector:
         entity:
+          domain:
+            - light
+            - switch
+
+variables:
+  button_1: !input button_1
+  target_1: !input target_1
+  button_2: !input button_2
+  target_2: !input target_2
 
 trigger:
   - platform: state
     entity_id: !input button_1
-    to: "on"
-    id: b1
   - platform: state
     entity_id: !input button_2
-    to: "on"
-    id: b2
+
+condition:
+  - condition: template
+    value_template: "{{ trigger.to_state.state != trigger.from_state.state }}"
+  - condition: template
+    value_template: >
+      {{ (as_timestamp(trigger.to_state.last_changed) - as_timestamp(trigger.from_state.last_changed)) > 0.1 }}
 
 action:
   - choose:
       - conditions:
           - condition: trigger
-            id: b1
+            entity_id: !input button_1
         sequence:
-          - service: homeassistant.toggle
+          - service: >
+              {% if target_1.domain == 'light' %}
+                light.turn_{{ trigger.to_state.state }}
+              {% else %}
+                switch.turn_{{ trigger.to_state.state }}
+              {% endif %}
             target:
               entity_id: !input target_1
+
       - conditions:
           - condition: trigger
-            id: b2
+            entity_id: !input button_2
         sequence:
-          - service: homeassistant.toggle
+          - service: >
+              {% if target_2.domain == 'light' %}
+                light.turn_{{ trigger.to_state.state }}
+              {% else %}
+                switch.turn_{{ trigger.to_state.state }}
+              {% endif %}
             target:
               entity_id: !input target_2
 
-mode: single
+mode: queued
+max_exceeded: silent

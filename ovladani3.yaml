@@ -1,38 +1,29 @@
 blueprint:
-  name: Link Multiple Switches and Lights (upravený)
+  name: Link Multiple Entities (bez omezení na světla)
   description: |
-    ## Link multiple switches and lights together v1.1.0 (upravený)
-    Select multiple switch and light entities to link their on/off state.
-    If any selected switch or light entity is turned on or off, the other selected entities will be sent a matching on or off command.
-    Requires Home Assistant 2022.5.0 or newer.
-    Upraveno pro lepší kompatibilitu s Tasmota tlačítky.
+    ## Link multiple entities together v1.1.0 (upravený)
+    Spojuje více entit tak, že změna stavu jedné (zapnutí/vypnutí) ovlivní ostatní.
+    Vstupy nejsou omezeny na světla, lze použít libovolné entity.
+    Upraveno pro kompatibilitu s Tasmota tlačítky a širší možnosti použití.
+    Vyžaduje Home Assistant 2022.5.0 nebo novější.
   domain: automation
   homeassistant:
     min_version: 2022.5.0
   input:
     lights:
-      name: Light Entities
+      name: Entities Group A (např. světla)
       selector:
         entity:
-          domain:
-            - light
           multiple: true
     switches:
-      name: Switch Entities
+      name: Entities Group B (např. spínače)
       selector:
         entity:
-          domain:
-            - switch
           multiple: true
-    sync_lights:
-      name: Sync Lights (Light to Light)
-      default: false
-      selector:
-        boolean:
+
 variables:
   switches: !input switches
   lights: !input lights
-  sync_lights: !input sync_lights
 
 trigger:
   - platform: state
@@ -46,27 +37,16 @@ max_exceeded: silent
 condition:
   - condition: template
     value_template: "{{ trigger.to_state.state != trigger.from_state.state }}"
-  # odstranena podminka na context, pridana kontrola na rozdil casu zmeny
   - condition: template
     value_template: >
       {{ (as_timestamp(trigger.to_state.last_changed) - as_timestamp(trigger.from_state.last_changed)) > 0.1 }}
 
 action:
-  - service: switch.turn_{{ trigger.to_state.state }}
+  - service: homeassistant.turn_{{ trigger.to_state.state }}
     target:
       entity_id: >
-        {{ expand(switches) 
-           | selectattr('entity_id', '!=', trigger.entity_id) 
-           | map(attribute='entity_id') 
-           | list }}
-  - service: light.turn_{{ trigger.to_state.state }}
-    target:
-      entity_id: >
-        {% if trigger.entity_id.split('.')[0] == 'switch' or sync_lights %}
-          {{ expand(lights) 
-             | selectattr('entity_id', '!=', trigger.entity_id) 
-             | map(attribute='entity_id') 
-             | list }}
-        {% else %}
-          [] 
-        {% endif %}
+        {% set all_entities = expand(switches + lights) %}
+        {{ all_entities
+            | selectattr('entity_id', '!=', trigger.entity_id)
+            | map(attribute='entity_id')
+            | list }}

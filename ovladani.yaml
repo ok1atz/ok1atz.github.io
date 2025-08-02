@@ -1,84 +1,95 @@
 blueprint:
-  name: Synchronizace dvou switchů obousměrně
-  description: Synchronizuje stav dvou switchů (on/off) bez zpětného cyklu.
+  name: Ovládání 4 zařízení pomocí 4 tlačítek
+  description: Každé tlačítko ovládá jednu cílovou entitu přepnutím stavu (toggle).
   domain: automation
   input:
-    switch_1:
-      name: První switch
-      description: První přepínač (například LED na Tasmotě)
+    button_1:
+      name: Tlačítko 1
       selector:
         entity:
           domain: switch
-    switch_2:
-      name: Druhý switch
-      description: Druhý přepínač, který se má synchronizovat
+    target_1:
+      name: Co ovládá tlačítko 1
+      selector:
+        entity:
+    button_2:
+      name: Tlačítko 2
       selector:
         entity:
           domain: switch
+    target_2:
+      name: Co ovládá tlačítko 2
+      selector:
+        entity:
+    button_3:
+      name: Tlačítko 3
+      selector:
+        entity:
+          domain: switch
+    target_3:
+      name: Co ovládá tlačítko 3
+      selector:
+        entity:
+    button_4:
+      name: Tlačítko 4
+      selector:
+        entity:
+          domain: switch
+    target_4:
+      name: Co ovládá tlačítko 4
+      selector:
+        entity:
 
 trigger:
   - platform: state
-    entity_id: !input switch_1
+    entity_id: !input button_1
     to: "on"
-    id: switch_1_on
+    id: t1
   - platform: state
-    entity_id: !input switch_1
-    to: "off"
-    id: switch_1_off
-  - platform: state
-    entity_id: !input switch_2
+    entity_id: !input button_2
     to: "on"
-    id: switch_2_on
+    id: t2
   - platform: state
-    entity_id: !input switch_2
-    to: "off"
-    id: switch_2_off
-
-condition: []
+    entity_id: !input button_3
+    to: "on"
+    id: t3
+  - platform: state
+    entity_id: !input button_4
+    to: "on"
+    id: t4
 
 action:
   - choose:
       - conditions:
           - condition: trigger
-            id: switch_1_on
-          - condition: state
-            entity_id: !input switch_2
-            state: "off"
+            id: t1
         sequence:
-          - service: switch.turn_on
+          - service: homeassistant.toggle
             target:
-              entity_id: !input switch_2
+              entity_id: !input target_1
 
       - conditions:
           - condition: trigger
-            id: switch_1_off
-          - condition: state
-            entity_id: !input switch_2
-            state: "on"
+            id: t2
         sequence:
-          - service: switch.turn_off
+          - service: homeassistant.toggle
             target:
-              entity_id: !input switch_2
+              entity_id: !input target_2
 
       - conditions:
           - condition: trigger
-            id: switch_2_on
-          - condition: state
-            entity_id: !input switch_1
-            state: "off"
+            id: t3
         sequence:
-          - service: switch.turn_on
+          - service: homeassistant.toggle
             target:
-              entity_id: !input switch_1
+              entity_id: !input target_3
 
       - conditions:
           - condition: trigger
-            id: switch_2_off
-          - condition: state
-            entity_id: !input switch_1
-            state: "on"
+            id: t4
         sequence:
-          - service: switch.turn_off
+          - service: homeassistant.toggle
             target:
-              entity_id: !input switch_1
+              entity_id: !input target_4
 mode: single
+

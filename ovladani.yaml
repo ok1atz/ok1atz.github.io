@@ -1,0 +1,84 @@
+blueprint:
+  name: Synchronizace dvou switchů obousměrně
+  description: Synchronizuje stav dvou switchů (on/off) bez zpětného cyklu.
+  domain: automation
+  input:
+    switch_1:
+      name: První switch
+      description: První přepínač (například LED na Tasmotě)
+      selector:
+        entity:
+          domain: switch
+    switch_2:
+      name: Druhý switch
+      description: Druhý přepínač, který se má synchronizovat
+      selector:
+        entity:
+          domain: switch
+
+trigger:
+  - platform: state
+    entity_id: !input switch_1
+    to: "on"
+    id: switch_1_on
+  - platform: state
+    entity_id: !input switch_1
+    to: "off"
+    id: switch_1_off
+  - platform: state
+    entity_id: !input switch_2
+    to: "on"
+    id: switch_2_on
+  - platform: state
+    entity_id: !input switch_2
+    to: "off"
+    id: switch_2_off
+
+condition: []
+
+action:
+  - choose:
+      - conditions:
+          - condition: trigger
+            id: switch_1_on
+          - condition: state
+            entity_id: !input switch_2
+            state: "off"
+        sequence:
+          - service: switch.turn_on
+            target:
+              entity_id: !input switch_2
+
+      - conditions:
+          - condition: trigger
+            id: switch_1_off
+          - condition: state
+            entity_id: !input switch_2
+            state: "on"
+        sequence:
+          - service: switch.turn_off
+            target:
+              entity_id: !input switch_2
+
+      - conditions:
+          - condition: trigger
+            id: switch_2_on
+          - condition: state
+            entity_id: !input switch_1
+            state: "off"
+        sequence:
+          - service: switch.turn_on
+            target:
+              entity_id: !input switch_1
+
+      - conditions:
+          - condition: trigger
+            id: switch_2_off
+          - condition: state
+            entity_id: !input switch_1
+            state: "on"
+        sequence:
+          - service: switch.turn_off
+            target:
+              entity_id: !input switch_1
+mode: single

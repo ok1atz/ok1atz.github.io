@@ -1,11 +1,7 @@
 blueprint:
-  name: Link Multiple Entities (bez omezení na světla)
+  name: synchronizace
   description: |
-    ## Link multiple entities together v1.1.0 (upravený)
-    Spojuje více entit tak, že změna stavu jedné (zapnutí/vypnutí) ovlivní ostatní.
-    Vstupy nejsou omezeny na světla, lze použít libovolné entity.
-    Upraveno pro kompatibilitu s Tasmota tlačítky a širší možnosti použití.
-    Vyžaduje Home Assistant 2022.5.0 nebo novější.
+    ## HA
   domain: automation
   homeassistant:
     min_version: 2022.5.0

@@ -1,9 +1,7 @@
 blueprint:
-  name: Kurva 4x Flexibilní Synchronizace
+  name:  Synchronizace
   description: >
-    Propojí 4 páry entit. Každý pár má dvě entity, které se synchronizují.
-    Můžeš vybrat entitu z nabídky (switch, light, input_boolean), nebo zadat entity_id ručně jako text.
-    Přepíná se přes homeassistant.turn_on/off, takže to funguje na většinu typů.
+    HA
   domain: automation
   input:
 

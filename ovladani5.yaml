@@ -1,87 +1,165 @@
 blueprint:
-  name: Synchronizace LED s entitami (Tasmota)
-  description: Ovládá až 4 LED (např. Tasmota relé) podle stavu 4 entit.
+  name:  Synchronizace
+  description: >
+    HA
   domain: automation
   input:
-    entity_1:
-      name: Entita 1
-      description: Entita, jejíž stav ovládá LED 1
+
+    entity1a:
+      name: Entita 1A
+      description: Vyber nebo zadej entity_id
       selector:
-        entity: {}
-    led_1:
-      name: LED 1 (Tasmota)
-      description: Entita LED (např. switch nebo light), která kopíruje stav entity 1
+        entity:
+          multiple: false
+          filter:
+            - domain: light
+            - domain: switch
+            - domain: input_boolean
+    entity1b:
+      name: Entita 1B
+      description: Vyber nebo zadej entity_id
       selector:
-        entity: {}
-    entity_2:
-      name: Entita 2
-      description: Entita, jejíž stav ovládá LED 2
+        entity:
+          multiple: false
+          filter:
+            - domain: light
+            - domain: switch
+            - domain: input_boolean
+
+    entity2a:
+      name: Entita 2A
       selector:
-        entity: {}
-    led_2:
-      name: LED 2 (Tasmota)
-      description: Entita LED (např. switch nebo light), která kopíruje stav entity 2
+        entity:
+          multiple: false
+          filter:
+            - domain: light
+            - domain: switch
+            - domain: input_boolean
+    entity2b:
+      name: Entita 2B
       selector:
-        entity: {}
-    entity_3:
-      name: Entita 3
-      description: Entita, jejíž stav ovládá LED 3
+        entity:
+          multiple: false
+          filter:
+            - domain: light
+            - domain: switch
+            - domain: input_boolean
+
+    entity3a:
+      name: Entita 3A
       selector:
-        entity: {}
-    led_3:
-      name: LED 3 (Tasmota)
-      description: Entita LED (např. switch nebo light), která kopíruje stav entity 3
+        entity:
+          multiple: false
+          filter:
+            - domain: light
+            - domain: switch
+            - domain: input_boolean
+    entity3b:
+      name: Entita 3B
       selector:
-        entity: {}
-    entity_4:
-      name: Entita 4
-      description: Entita, jejíž stav ovládá LED 4
+        entity:
+          multiple: false
+          filter:
+            - domain: light
+            - domain: switch
+            - domain: input_boolean
+
+    entity4a:
+      name: Entita 4A
       selector:
-        entity: {}
-    led_4:
-      name: LED 4 (Tasmota)
-      description: Entita LED (např. switch nebo light), která kopíruje stav entity 4
+        entity:
+          multiple: false
+          filter:
+            - domain: light
+            - domain: switch
+            - domain: input_boolean
+    entity4b:
+      name: Entita 4B
       selector:
-        entity: {}
+        entity:
+          multiple: false
+          filter:
+            - domain: light
+            - domain: switch
+            - domain: input_boolean
 
 trigger:
   - platform: state
-    entity_id:
-      - !input entity_1
-      - !input entity_2
-      - !input entity_3
-      - !input entity_4
-
-condition: []
+    entity_id: !input entity1a
+  - platform: state
+    entity_id: !input entity1b
+  - platform: state
+    entity_id: !input entity2a
+  - platform: state
+    entity_id: !input entity2b
+  - platform: state
+    entity_id: !input entity3a
+  - platform: state
+    entity_id: !input entity3b
+  - platform: state
+    entity_id: !input entity4a
+  - platform: state
+    entity_id: !input entity4b
 
 action:
   - choose:
       - conditions:
           - condition: template
-            value_template: "{{ states[blueprint.input.entity_1] is defined }}"
+            value_template: "{{ trigger.entity_id == (entity1a) and trigger.to_state.state == 'on' }}"
         sequence:
-          - service: homeassistant.turn_{{ states(blueprint.input.entity_1) }}
+          - service: homeassistant.turn_on
             target:
-              entity_id: !input led_1
+              entity_id: !input entity1b
       - conditions:
           - condition: template
-            value_template: "{{ states[blueprint.input.entity_2] is defined }}"
+            value_template: "{{ trigger.entity_id == (entity1b) and trigger.to_state.state == 'off' }}"
         sequence:
-          - service: homeassistant.turn_{{ states(blueprint.input.entity_2) }}
+          - service: homeassistant.turn_off
             target:
-              entity_id: !input led_2
+              entity_id: !input entity1a
+
       - conditions:
           - condition: template
-            value_template: "{{ states[blueprint.input.entity_3] is defined }}"
+            value_template: "{{ trigger.entity_id == (entity2a) and trigger.to_state.state == 'on' }}"
         sequence:
-          - service: homeassistant.turn_{{ states(blueprint.input.entity_3) }}
+          - service: homeassistant.turn_on
             target:
-              entity_id: !input led_3
+              entity_id: !input entity2b
       - conditions:
           - condition: template
-            value_template: "{{ states[blueprint.input.entity_4] is defined }}"
+            value_template: "{{ trigger.entity_id == (entity2b) and trigger.to_state.state == 'off' }}"
         sequence:
-          - service: homeassistant.turn_{{ states(blueprint.input.entity_4) }}
+          - service: homeassistant.turn_off
             target:
-              entity_id: !input led_4
-mode: parallel
+              entity_id: !input entity2a
+
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.entity_id == (entity3a) and trigger.to_state.state == 'on' }}"
+        sequence:
+          - service: homeassistant.turn_on
+            target:
+              entity_id: !input entity3b
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.entity_id == (entity3b) and trigger.to_state.state == 'off' }}"
+        sequence:
+          - service: homeassistant.turn_off
+            target:
+              entity_id: !input entity3a
+
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.entity_id == (entity4a) and trigger.to_state.state == 'on' }}"
+        sequence:
+          - service: homeassistant.turn_on
+            target:
+              entity_id: !input entity4b
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.entity_id == (entity4b) and trigger.to_state.state == 'off' }}"
+        sequence:
+          - service: homeassistant.turn_off
+            target:
+              entity_id: !input entity4a
+mode: restart
